@@ -1,6 +1,8 @@
 module github.com/catmcgee/storj-project
 
+// +heroku goVersion go1.14
 go 1.14
+
 
 require (
 	github.com/calebcase/tmpfile v1.0.3 // indirect
