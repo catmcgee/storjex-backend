@@ -29,7 +29,7 @@ func main() {
     api.HandleFunc("", deleteFile).Methods(http.MethodDelete)
     api.HandleFunc("/file/{passphrase}", downloadFile).Methods(http.MethodGet)
 	// api.HandleFunc("/fileInfo", getFileInfo).Methods(http.MethodGet)
-    log.Fatal(http.ListenAndServe(os.Getenv("PORT"), r))
+    log.Fatal(http.ListenAndServe(":" + os.Getenv("PORT"), r))
 }
 
 func uploadFile(w http.ResponseWriter, r * http.Request) {
