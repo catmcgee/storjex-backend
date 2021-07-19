@@ -61,7 +61,7 @@ func UploadData(ctx context.Context,
     return userPassphrase, adminPassphrase, objectKey
 
 }
-func DownloadData(passphrase string)(fileContents []byte, err error) {
+func DownloadData(passphrase string)(fileContents []byte, downloadsRemaining int, err error) {
         var accessGrant string
         var bucket string
         var key string
@@ -78,33 +78,33 @@ func DownloadData(passphrase string)(fileContents []byte, err error) {
             fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
         }
         if (numberOfDownloads <= 0) {
-            return nil, fmt.Errorf("This file has reached its maximum number of downloads")
+            return nil, 0, fmt.Errorf("This file has reached its maximum number of downloads")
         } else {
 
        project := ConnectToStorjexProject(myAccessGrant)
         download, err:= project.DownloadObject(ctx, bucket, key, nil)
         if err != nil {
-             return nil, fmt.Errorf("Could not open object: %v", err)
+             return nil, 0, fmt.Errorf("Could not open object: %v", err)
         }
         defer download.Close()
-        newNumberOfDownloads := numberOfDownloads - 1
+        remainingDownloads := numberOfDownloads - 1
 
-        query= fmt.Sprintf(`UPDATE passphrases SET numberOfDownloads = %b WHERE passphrase = '%s'`,
-            newNumberOfDownloads, passphrase)
+        query= fmt.Sprintf(`UPDATE passphrases SET numberOfDownloads = %v WHERE passphrase = '%s'`,
+            remainingDownloads, passphrase)
         defer conn.Close(ctx)
         _, err = conn.Query(ctx, query)
         if err != nil {
-           return nil, fmt.Errorf("Could not get file from database: %v", err)
+           return nil, 0, fmt.Errorf("Could not get file from database: %v", err)
         }
 
         // Read everything from the download stream
         receivedContents, err:= ioutil.ReadAll(download)
 		if err != nil {
-            return nil, fmt.Errorf("Could not read file data, may be corrupted: %v", err)
+            return nil, 0, fmt.Errorf("Could not read file data, may be corrupted: %v", err)
 	   }
     
         // Check that the downloaded data is the same as the uploaded data.
-        return receivedContents, nil
+        return receivedContents, remainingDownloads, nil
     }
 }
 
@@ -189,8 +189,10 @@ func generatePassphrases(
     // put the passes in database with access grant, bucket, key
     conn := ConnectToDataBase()
 
+    fmt.Println("numner od downlaods", numberOfDownloads)
+
        
-    query:= fmt.Sprintf(`INSERT INTO passphrases (passphrase, adminPassphrase, adminAccessGrant, accessGrant, bucket, key, numberOfDownloads) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%b')`,
+    query:= fmt.Sprintf(`INSERT INTO passphrases (passphrase, adminPassphrase, adminAccessGrant, accessGrant, bucket, key, numberOfDownloads) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%v')`,
             userPassphrase, adminPassphrase, adminAccessToken, userAccessToken, bucket, objectKey, numberOfDownloads)
         if _, err:= conn.Exec(context.Background(),
             query);
