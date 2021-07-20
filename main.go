@@ -22,9 +22,9 @@ var myAccessGrant = os.Getenv("ACCESS_GRANT")
 func main() {
     r:=mux.NewRouter()
     api:=r.PathPrefix("/api/v1").Subrouter()
-    api.HandleFunc("", uploadFile).Methods("POST")
+    api.HandleFunc("", uploadFile).Methods(http.MethodPost)
     api.HandleFunc("/file/{passphrase}", deleteFile).Methods("DELETE", "OPTIONS")
-    api.HandleFunc("/file/{passphrase}", downloadFile).Methods("GET")
+    api.HandleFunc("/file/{passphrase}", downloadFile).Methods(http.MethodGet)
     api.HandleFunc("/file/{passphrase}", updateFile).Methods("PUT")
     log.Fatal(http.ListenAndServe(":" + os.Getenv("BACKEND_PORT"), r))
 }
