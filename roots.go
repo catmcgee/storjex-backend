@@ -17,40 +17,36 @@ func ConnectToDataBase() * pgx.Conn {
     if err != nil {
         log.Fatal("error configuring the database: ", err)
     }
-    // Connect to the "storjex" database.
-    conn,
-    err:=pgx.ConnectConfig(context.Background(), config)
+    
+    conn, err:=pgx.ConnectConfig(context.Background(), config) // Connect to the "storjex" database
     if err != nil {
         log.Fatal("error connecting to the database: ", err)
     }
 
-    // Create the "passphrases" table.
-    if _,
-    err:=conn.Exec(ctx,
+    if _, err:=conn.Exec(ctx,
         "CREATE TABLE IF NOT EXISTS passphrases (passphrase STRING, adminPassphrase STRING, adminAccessGrant STRING, accessGrant STRING, bucket STRING, key STRING, numberOfDownloads INT)");err != nil {
-        log.Fatal(err)
-    }
-
+        log.Fatal(err) 
+    } // Create the "passphrases" table
+ 
     return conn
 }
 
 func ConnectToStorjexProject(accessGrant string) * uplink.Project {
     ctx:=context.Background()
     access,
-    err:=uplink.ParseAccess(accessGrant)
+    err:=uplink.ParseAccess(accessGrant) // Parse serialized access grant
     if err != nil {
         fmt.Errorf("could not parse access grant: %v", err)
     }
-    // Initiate a download of the same object again
-    project,
-    err:=uplink.OpenProject(ctx, access)
-    if err != nil {
+    
+    project, err:=uplink.OpenProject(ctx, access) // Open project to be ready for upload/download/update of object
+    if err != nil { 
         fmt.Errorf("could not open project: %v", err)
     }
     defer project.Close()
 
     _,
-    err = project.EnsureBucket(ctx, bucket)
+    err = project.EnsureBucket(ctx, bucket) // Make sure that Storjex bucket exists
     if err != nil {
         fmt.Errorf("could not ensure bucket: %v", err)
     }
