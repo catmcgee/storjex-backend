@@ -66,6 +66,7 @@ func DownloadData(passphrase string)(fileContents[] byte, downloadsRemaining int
 
     query:=fmt.Sprintf(`SELECT accessGrant, bucket, key, numberOfDownloads FROM passphrases WHERE passphrase = '%s'`,
         passphrase) // Find access grant & object information from the passphrase entered
+    defer conn.Close(ctx)
     err = conn.QueryRow(ctx, query).Scan( & accessGrant, & bucket, & key, & numberOfDownloads)
     if err != nil {
         fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
